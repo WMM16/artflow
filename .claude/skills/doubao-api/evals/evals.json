@@ -1,0 +1,64 @@
+{
+  "skill_name": "doubao-api",
+  "evals": [
+    {
+      "id": 1,
+      "name": "basic-project-creation",
+      "prompt": "帮我创建一个豆包API项目，放在 ./test-doubao-project 目录",
+      "expected_output": "创建完整的豆包API项目结构，包含 lib/gentext.js、lib/genpic.js、.env.example、example.js，并询问API Key",
+      "files": [],
+      "assertions": [
+        {
+          "name": "gentext_js_exists",
+          "description": "lib/gentext.js 文件存在"
+        },
+        {
+          "name": "genpic_js_exists",
+          "description": "lib/genpic.js 文件存在"
+        },
+        {
+          "name": "env_example_exists",
+          "description": ".env.example 文件存在"
+        },
+        {
+          "name": "example_js_exists",
+          "description": "example.js 文件存在"
+        },
+        {
+          "name": "asks_for_api_key",
+          "description": "询问用户输入 API Key"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "doubao-api-trigger",
+      "prompt": "我要用doubao-api做文生图功能，帮我初始化项目",
+      "expected_output": "识别到doubao-api关键词，创建豆包API项目结构，包含图片生成功能",
+      "files": [],
+      "assertions": [
+        {
+          "name": "javascript_structure",
+          "description": "创建的是 JavaScript/Node.js 项目结构而非 Python"
+        },
+        {
+          "name": "image_generation_module",
+          "description": "包含图片生成模块 (genpic.js)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "volcano-engine-project",
+      "prompt": "火山引擎API项目怎么搭建？我想用豆包seed模型",
+      "expected_output": "识别火山引擎和豆包seed关键词，创建对应项目结构",
+      "files": [],
+      "assertions": [
+        {
+          "name": "correct_models",
+          "description": "使用正确的豆包模型 doubao-seed-2-0-pro-260215 和 doubao-seedream-5-0-260128"
+        }
+      ]
+    }
+  ]
+}
