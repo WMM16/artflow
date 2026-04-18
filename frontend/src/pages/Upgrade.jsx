@@ -10,7 +10,7 @@ import {
   SafetyOutlined
 } from '@ant-design/icons'
 import { useAuthStore } from '../stores/auth'
-import { historyApi } from '../lib/api'
+import { historyApi, upgradeApi } from '../lib/api'
 
 const { Title, Text } = Typography
 
@@ -109,16 +109,13 @@ function Upgrade() {
       onOk: async () => {
         setLoading(true)
         try {
-          // 这里调用后端支付接口
-          // const response = await upgradeApi.purchase(pkg.id)
+          // 调用后端支付接口
+          const response = await upgradeApi.purchase(pkg.id)
 
-          // 模拟支付成功
-          await new Promise(resolve => setTimeout(resolve, 1500))
-
-          message.success(`购买成功！已增加 ${pkg.quota} 张额度`)
+          message.success(response.data.message)
           fetchCurrentQuota()
         } catch (error) {
-          message.error('购买失败，请稍后重试')
+          message.error(error.response?.data?.detail || '购买失败，请稍后重试')
         } finally {
           setLoading(false)
         }
@@ -129,236 +126,240 @@ function Upgrade() {
   const selectedPkg = PACKAGES.find(p => p.id === selectedPackage)
 
   return (
-    <div>
-      <Title level={3} style={{ color: '#fff', marginBottom: 24 }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Title level={4} style={{ color: '#fff', marginBottom: 12, marginTop: 0, flexShrink: 0 }}>
         <CrownOutlined style={{ color: '#7C3AED', marginRight: 8 }} />
         提升额度
       </Title>
 
-      {/* 当前额度状态 */}
-      <Card
-        style={{
-          background: 'linear-gradient(135deg, #7C3AED20, #4F46E520)',
-          border: '1px solid #7C3AED50',
-          borderRadius: 12,
-          marginBottom: 24
-        }}
-      >
-        <Row gutter={24} align="middle">
-          <Col span={8}>
-            <div style={{ textAlign: 'center' }}>
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>今日已用</Text>
-              <div style={{ fontSize: 32, fontWeight: 'bold', color: '#fff', marginTop: 8 }}>
-                {currentQuota.used}
-              </div>
-            </div>
-          </Col>
-          <Col span={8}>
-            <div style={{ textAlign: 'center', borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>剩余额度</Text>
-              <div style={{ fontSize: 32, fontWeight: 'bold', color: '#7C3AED', marginTop: 8 }}>
-                {currentQuota.remaining}
-              </div>
-            </div>
-          </Col>
-          <Col span={8}>
-            <div style={{ textAlign: 'center' }}>
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>每日基础</Text>
-              <div style={{ fontSize: 32, fontWeight: 'bold', color: '#fff', marginTop: 8 }}>
-                {currentQuota.daily}
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Card>
+      <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+        <Spin spinning={loading}>
+          {/* 当前额度状态 */}
+          <Card
+            style={{
+              background: 'linear-gradient(135deg, #7C3AED20, #4F46E520)',
+              border: '1px solid #7C3AED50',
+              borderRadius: 8,
+              marginBottom: 16
+            }}
+            bodyStyle={{ padding: 16 }}
+          >
+            <Row gutter={16} align="middle">
+              <Col span={8}>
+                <div style={{ textAlign: 'center' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>今日已用</Text>
+                  <div style={{ fontSize: 28, fontWeight: 'bold', color: '#fff', marginTop: 4 }}>
+                    {currentQuota.used}
+                  </div>
+                </div>
+              </Col>
+              <Col span={8}>
+                <div style={{ textAlign: 'center', borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>剩余额度</Text>
+                  <div style={{ fontSize: 28, fontWeight: 'bold', color: '#7C3AED', marginTop: 4 }}>
+                    {currentQuota.remaining}
+                  </div>
+                </div>
+              </Col>
+              <Col span={8}>
+                <div style={{ textAlign: 'center' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>每日基础</Text>
+                  <div style={{ fontSize: 28, fontWeight: 'bold', color: '#fff', marginTop: 4 }}>
+                    {currentQuota.daily}
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Card>
 
-      <Spin spinning={loading}>
-        {/* 套餐选择 */}
-        <Row gutter={[16, 16]}>
-          {PACKAGES.map((pkg) => (
-            <Col xs={24} sm={12} lg={6} key={pkg.id}>
-              <Card
-                hoverable
-                onClick={() => setSelectedPackage(pkg.id)}
-                style={{
-                  background: selectedPackage === pkg.id ? `${pkg.color}20` : '#1A1A1A',
-                  border: selectedPackage === pkg.id ? `2px solid ${pkg.color}` : '1px solid #333',
-                  borderRadius: 12,
-                  height: '100%',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                {pkg.popular && (
-                  <div
+          {/* 套餐选择 */}
+          <Row gutter={[12, 12]}>
+            {PACKAGES.map((pkg) => (
+              <Col xs={24} sm={12} lg={6} key={pkg.id}>
+                <Card
+                  hoverable
+                  onClick={() => setSelectedPackage(pkg.id)}
+                  style={{
+                    background: selectedPackage === pkg.id ? `${pkg.color}20` : '#1A1A1A',
+                    border: selectedPackage === pkg.id ? `2px solid ${pkg.color}` : '1px solid #333',
+                    borderRadius: 8,
+                    height: '100%',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                  bodyStyle={{ padding: 12 }}
+                >
+                  {pkg.popular && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        background: pkg.color,
+                        color: '#fff',
+                        padding: '2px 8px',
+                        fontSize: 11,
+                        borderBottomLeftRadius: 8
+                      }}
+                    >
+                      推荐
+                    </div>
+                  )}
+
+                  <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        background: `linear-gradient(135deg, ${pkg.color}, ${pkg.color}80)`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 8px',
+                        fontSize: 20,
+                        color: '#fff'
+                      }}
+                    >
+                      {pkg.icon}
+                    </div>
+                    <Title level={5} style={{ color: '#fff', margin: 0, fontSize: 16 }}>
+                      {pkg.name}
+                    </Title>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
+                      {pkg.description}
+                    </Text>
+                  </div>
+
+                  <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>¥</Text>
+                    <Text style={{ fontSize: 28, fontWeight: 'bold', color: pkg.color, margin: '0 4px' }}>
+                      {pkg.price}
+                    </Text>
+                  </div>
+
+                  <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                    <Tag
+                      color={pkg.color}
+                      style={{ fontSize: 13, padding: '2px 12px' }}
+                    >
+                      +{pkg.quota} 张额度
+                    </Tag>
+                  </div>
+
+                  <Divider style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '8px 0' }} />
+
+                  <div style={{ marginBottom: 12 }}>
+                    {pkg.features.map((feature, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          marginBottom: 4,
+                          color: 'rgba(255,255,255,0.8)',
+                          fontSize: 12
+                        }}
+                      >
+                        <CheckOutlined style={{ color: pkg.color, fontSize: 10 }} />
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button
+                    type={selectedPackage === pkg.id ? 'primary' : 'default'}
+                    block
+                    size="small"
+                    icon={selectedPackage === pkg.id ? <ThunderboltOutlined /> : null}
                     style={{
-                      position: 'absolute',
-                      top: 0,
-                      right: 0,
-                      background: pkg.color,
-                      color: '#fff',
-                      padding: '4px 12px',
-                      fontSize: 12,
-                      borderBottomLeftRadius: 12
+                      background: selectedPackage === pkg.id ? pkg.color : 'transparent',
+                      borderColor: pkg.color,
+                      color: selectedPackage === pkg.id ? '#fff' : pkg.color,
+                      height: 36
                     }}
                   >
-                    推荐
-                  </div>
-                )}
+                    {selectedPackage === pkg.id ? '已选择' : '选择'}
+                  </Button>
+                </Card>
+              </Col>
+            ))}
+          </Row>
 
-                <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          {/* 支付区域 */}
+          <Card
+            style={{
+              background: '#1A1A1A',
+              border: '1px solid #333',
+              borderRadius: 8,
+              marginTop: 16
+            }}
+            bodyStyle={{ padding: 16 }}
+          >
+            <Row gutter={16} align="middle">
+              <Col span={16}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div
                     style={{
-                      width: 56,
-                      height: 56,
+                      width: 40,
+                      height: 40,
                       borderRadius: '50%',
-                      background: `linear-gradient(135deg, ${pkg.color}, ${pkg.color}80)`,
+                      background: `linear-gradient(135deg, ${selectedPkg?.color}, ${selectedPkg?.color}80)`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 12px',
-                      fontSize: 24,
+                      fontSize: 18,
                       color: '#fff'
                     }}
                   >
-                    {pkg.icon}
+                    {selectedPkg?.icon}
                   </div>
-                  <Title level={4} style={{ color: '#fff', margin: 0 }}>
-                    {pkg.name}
-                  </Title>
-                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
-                    {pkg.description}
+                  <div>
+                    <Title level={5} style={{ color: '#fff', margin: 0, fontSize: 15 }}>
+                      {selectedPkg?.name}
+                    </Title>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
+                      增加 {selectedPkg?.quota} 张生成额度 · 当日有效
+                    </Text>
+                  </div>
+                </div>
+              </Col>
+              <Col span={8} style={{ textAlign: 'right' }}>
+                <div style={{ marginBottom: 8 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', marginRight: 8, fontSize: 12 }}>总计:</Text>
+                  <Text style={{ fontSize: 28, fontWeight: 'bold', color: selectedPkg?.color }}>
+                    ¥{selectedPkg?.price}
                   </Text>
                 </div>
-
-                <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                  <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>¥</Text>
-                  <Text style={{ fontSize: 36, fontWeight: 'bold', color: pkg.color, margin: '0 4px' }}>
-                    {pkg.price}
-                  </Text>
-                </div>
-
-                <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                  <Tag
-                    color={pkg.color}
-                    style={{ fontSize: 16, padding: '4px 16px' }}
-                  >
-                    +{pkg.quota} 张额度
-                  </Tag>
-                </div>
-
-                <Divider style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '12px 0' }} />
-
-                <div style={{ marginBottom: 16 }}>
-                  {pkg.features.map((feature, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 8,
-                        color: 'rgba(255,255,255,0.8)',
-                        fontSize: 13
-                      }}
-                    >
-                      <CheckOutlined style={{ color: pkg.color, fontSize: 12 }} />
-                      {feature}
-                    </div>
-                  ))}
-                </div>
-
                 <Button
-                  type={selectedPackage === pkg.id ? 'primary' : 'default'}
-                  block
-                  size="large"
-                  icon={selectedPackage === pkg.id ? <ThunderboltOutlined /> : null}
+                  type="primary"
+                  onClick={handlePurchase}
+                  loading={loading}
+                  icon={<ThunderboltOutlined />}
                   style={{
-                    background: selectedPackage === pkg.id ? pkg.color : 'transparent',
-                    borderColor: pkg.color,
-                    color: selectedPackage === pkg.id ? '#fff' : pkg.color,
-                    height: 44
-                  }}
-                >
-                  {selectedPackage === pkg.id ? '已选择' : '选择'}
-                </Button>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-
-        {/* 支付区域 */}
-        <Card
-          style={{
-            background: '#1A1A1A',
-            border: '1px solid #333',
-            borderRadius: 12,
-            marginTop: 24
-          }}
-        >
-          <Row gutter={24} align="middle">
-            <Col span={16}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: '50%',
                     background: `linear-gradient(135deg, ${selectedPkg?.color}, ${selectedPkg?.color}80)`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 20,
-                    color: '#fff'
+                    border: 'none',
+                    height: 40,
+                    fontSize: 14,
+                    padding: '0 24px'
                   }}
                 >
-                  {selectedPkg?.icon}
-                </div>
-                <div>
-                  <Title level={5} style={{ color: '#fff', margin: 0 }}>
-                    {selectedPkg?.name}
-                  </Title>
-                  <Text style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    增加 {selectedPkg?.quota} 张生成额度 · 当日有效
-                  </Text>
-                </div>
-              </div>
-            </Col>
-            <Col span={8} style={{ textAlign: 'right' }}>
-              <div style={{ marginBottom: 12 }}>
-                <Text style={{ color: 'rgba(255,255,255,0.6)', marginRight: 8 }}>总计:</Text>
-                <Text style={{ fontSize: 32, fontWeight: 'bold', color: selectedPkg?.color }}>
-                  ¥{selectedPkg?.price}
-                </Text>
-              </div>
-              <Button
-                type="primary"
-                size="large"
-                onClick={handlePurchase}
-                loading={loading}
-                icon={<ThunderboltOutlined />}
-                style={{
-                  background: `linear-gradient(135deg, ${selectedPkg?.color}, ${selectedPkg?.color}80)`,
-                  border: 'none',
-                  height: 48,
-                  fontSize: 16,
-                  padding: '0 32px'
-                }}
-              >
-                立即支付
-              </Button>
-            </Col>
-          </Row>
-        </Card>
+                  立即支付
+                </Button>
+              </Col>
+            </Row>
+          </Card>
 
-        {/* 说明 */}
-        <div style={{ marginTop: 24, textAlign: 'center' }}>
-          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
-            <SafetyOutlined style={{ marginRight: 4 }} />
-            支付安全由第三方支付平台保障 · 额度购买后立即到账 · 不支持退款
-          </Text>
-        </div>
-      </Spin>
+          {/* 说明 */}
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>
+              <SafetyOutlined style={{ marginRight: 4 }} />
+              支付安全由第三方支付平台保障 · 额度购买后立即到账 · 不支持退款
+            </Text>
+          </div>
+        </Spin>
+      </div>
     </div>
   )
 }

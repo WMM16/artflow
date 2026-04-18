@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Card, Form, Input, Button, Select, Slider, Row, Col, Space, Typography, message, Image, Upload, Progress, Tooltip, Modal } from 'antd'
+import { Card, Form, Input, Button, Select, Slider, Row, Col, Space, Typography, message, Image, Upload, Tooltip, Modal } from 'antd'
 import {
   ThunderboltOutlined,
   DownloadOutlined,
@@ -8,7 +8,6 @@ import {
   DeleteOutlined,
   PictureOutlined,
   UploadOutlined,
-  InfoCircleOutlined,
   CloseOutlined
 } from '@ant-design/icons'
 import { generateApi, historyApi } from '../lib/api'
@@ -160,21 +159,24 @@ function GenerateImage() {
   }
 
   return (
-    <div>
-      <Title level={3} style={{ color: '#fff', marginBottom: 24 }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Title level={4} style={{ color: '#fff', marginBottom: 12, marginTop: 0, flexShrink: 0 }}>
         <PictureOutlined style={{ color: '#7C3AED', marginRight: 8 }} />
         图生图
       </Title>
 
-      <Row gutter={24}>
-        <Col span={8}>
+      <Row gutter={16} style={{ flex: 1, minHeight: 0 }}>
+        <Col span={7} style={{ height: '100%' }}>
           <Card
             style={{
               background: '#1A1A1A',
               border: '1px solid #333',
-              borderRadius: 12
+              borderRadius: 8,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
             }}
-            bodyStyle={{ padding: 24 }}
+            bodyStyle={{ padding: 16, flex: 1, overflow: 'auto' }}
           >
             <Form
               form={form}
@@ -187,23 +189,25 @@ function GenerateImage() {
               }}
             >
               <Form.Item
-                label={<span style={{ color: '#fff' }}>参考图片</span>}
+                label={<span style={{ color: '#fff', fontSize: 13 }}>参考图片</span>}
                 required
+                style={{ marginBottom: 12 }}
               >
                 {previewUrl ? (
-                  <div style={{ position: 'relative', borderRadius: 8, overflow: 'hidden' }}>
+                  <div style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', height: 120 }}>
                     <Image
                       src={previewUrl}
-                      style={{ width: '100%', height: 200, objectFit: 'cover' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       preview={false}
                     />
                     <Button
                       icon={<CloseOutlined />}
                       danger
+                      size="small"
                       style={{
                         position: 'absolute',
-                        top: 8,
-                        right: 8,
+                        top: 4,
+                        right: 4,
                         background: 'rgba(0,0,0,0.7)',
                         border: 'none'
                       }}
@@ -219,15 +223,15 @@ function GenerateImage() {
                       background: 'rgba(255,255,255,0.05)',
                       border: '1px dashed #7C3AED',
                       borderRadius: 8,
-                      padding: '20px 0'
+                      padding: '16px 0'
                     }}
                   >
-                    <UploadOutlined style={{ fontSize: 32, color: '#7C3AED' }} />
-                    <div style={{ marginTop: 8, color: '#fff' }}>
-                      点击或拖拽上传图片
+                    <UploadOutlined style={{ fontSize: 24, color: '#7C3AED' }} />
+                    <div style={{ marginTop: 4, color: '#fff', fontSize: 13 }}>
+                      点击或拖拽上传
                     </div>
-                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
-                      支持 PNG、JPG、WEBP
+                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
+                      PNG、JPG、WEBP
                     </div>
                   </Dragger>
                 )}
@@ -235,15 +239,9 @@ function GenerateImage() {
 
               <Form.Item
                 name="prompt"
-                label={
-                  <span style={{ color: '#fff' }}>
-                    提示词
-                    <Tooltip title="描述你想要的图片效果">
-                      <InfoCircleOutlined style={{ marginLeft: 8, color: '#666' }} />
-                    </Tooltip>
-                  </span>
-                }
+                label={<span style={{ color: '#fff', fontSize: 13 }}>提示词</span>}
                 rules={[{ required: true, message: '请输入提示词' }]}
+                style={{ marginBottom: 12 }}
               >
                 <TextArea
                   rows={3}
@@ -259,11 +257,12 @@ function GenerateImage() {
 
               <Form.Item
                 name="negativePrompt"
-                label={<span style={{ color: '#fff' }}>负面提示词</span>}
+                label={<span style={{ color: '#fff', fontSize: 13 }}>负面提示词</span>}
+                style={{ marginBottom: 12 }}
               >
                 <TextArea
                   rows={2}
-                  placeholder="不希望在图片中出现的元素..."
+                  placeholder="不希望出现的元素..."
                   style={{
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid #333',
@@ -275,7 +274,8 @@ function GenerateImage() {
 
               <Form.Item
                 name="size"
-                label={<span style={{ color: '#fff' }}>图片尺寸</span>}
+                label={<span style={{ color: '#fff', fontSize: 13 }}>图片尺寸</span>}
+                style={{ marginBottom: 12 }}
               >
                 <Select
                   options={SIZE_OPTIONS}
@@ -286,45 +286,24 @@ function GenerateImage() {
 
               <Form.Item
                 name="strength"
-                label={
-                  <span style={{ color: '#fff' }}>
-                    变化强度: {form.getFieldValue('strength') || 0.7}
-                  </span>
-                }
+                label={<span style={{ color: '#fff', fontSize: 13 }}>变化强度: {form.getFieldValue('strength') || 0.7}</span>}
+                style={{ marginBottom: 12 }}
               >
-                <Slider
-                  min={0.1}
-                  max={1}
-                  step={0.1}
-                  marks={{
-                    0.1: '保守',
-                    0.5: '平衡',
-                    1: '创新'
-                  }}
-                />
+                <Slider min={0.1} max={1} step={0.1} marks={{ 0.1: '保守', 0.5: '平衡', 1: '创新' }} />
               </Form.Item>
 
               <Form.Item
                 name="count"
-                label={
-                  <span style={{ color: '#fff' }}>
-                    生成数量: {form.getFieldValue('count') || 1}
-                  </span>
-                }
+                label={<span style={{ color: '#fff', fontSize: 13 }}>生成数量: {form.getFieldValue('count') || 1}</span>}
+                style={{ marginBottom: 16 }}
               >
-                <Slider
-                  min={1}
-                  max={4}
-                  step={1}
-                  marks={{ 1: '1', 2: '2', 3: '3', 4: '4' }}
-                />
+                <Slider min={1} max={4} step={1} marks={{ 1: '1', 2: '2', 3: '3', 4: '4' }} />
               </Form.Item>
 
-              <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+              <Form.Item style={{ marginTop: 'auto', marginBottom: 0 }}>
                 <Button
                   type="primary"
                   htmlType="submit"
-                  size="large"
                   loading={loading}
                   block
                   icon={<ThunderboltOutlined />}
@@ -332,8 +311,7 @@ function GenerateImage() {
                   style={{
                     background: 'linear-gradient(135deg, #7C3AED, #4F46E5)',
                     border: 'none',
-                    height: 48,
-                    fontSize: 16
+                    height: 40
                   }}
                 >
                   {loading ? `生成中 ${progress}%` : '开始生成'}
@@ -343,15 +321,15 @@ function GenerateImage() {
           </Card>
         </Col>
 
-        <Col span={16}>
+        <Col span={17} style={{ height: '100%' }}>
           <Card
             style={{
               background: '#1A1A1A',
               border: '1px solid #333',
-              borderRadius: 12,
-              minHeight: 600
+              borderRadius: 8,
+              height: '100%'
             }}
-            bodyStyle={{ padding: 24 }}
+            bodyStyle={{ padding: 16, height: '100%', overflow: 'auto' }}
           >
             {results.length === 0 ? (
               <div
@@ -360,103 +338,52 @@ function GenerateImage() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  height: 500,
+                  height: '100%',
                   color: 'rgba(255,255,255,0.3)'
                 }}
               >
-                <PictureOutlined style={{ fontSize: 80, marginBottom: 24 }} />
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16 }}>
-                  {loading ? '正在生成你的创意作品...' : '上传参考图片开始创作'}
+                <PictureOutlined style={{ fontSize: 64, marginBottom: 16 }} />
+                <Text style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  {loading ? '正在生成...' : '上传参考图片开始创作'}
                 </Text>
                 {loading && (
-                  <div style={{ marginTop: 24, width: 200 }}>
-                    <div
-                      style={{
-                        height: 4,
-                        background: 'rgba(124, 58, 237, 0.2)',
-                        borderRadius: 2,
-                        overflow: 'hidden'
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${progress}%`,
-                          height: '100%',
-                          background: 'linear-gradient(90deg, #7C3AED, #4F46E5)',
-                          borderRadius: 2,
-                          transition: 'width 0.3s ease'
-                        }}
-                      />
+                  <div style={{ marginTop: 16, width: 200 }}>
+                    <div style={{ height: 4, background: 'rgba(124, 58, 237, 0.2)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, #7C3AED, #4F46E5)', borderRadius: 2, transition: 'width 0.3s ease' }} />
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              <div>
-                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: '#fff', fontSize: 16 }}>
-                    生成结果
-                  </Text>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                  <Text style={{ color: '#fff' }}>生成结果</Text>
                   <Space>
-                    <Button
-                      icon={<ReloadOutlined />}
-                      onClick={() => form.submit()}
-                    >
-                      重新生成
-                    </Button>
-                    <Button
-                      icon={<DeleteOutlined />}
-                      danger
-                      onClick={() => setResults([])}
-                    >
-                      清空
-                    </Button>
+                    <Button icon={<ReloadOutlined />} size="small" onClick={() => form.submit()}>重新生成</Button>
+                    <Button icon={<DeleteOutlined />} danger size="small" onClick={() => setResults([])}>清空</Button>
                   </Space>
                 </div>
-                <Row gutter={[16, 16]}>
+                <Row gutter={[12, 12]} style={{ flex: 1 }}>
                   {results.map((url, index) => (
-                    <Col span={results.length === 1 ? 24 : 12} key={index}>
-                      <div
-                        style={{
-                          position: 'relative',
-                          borderRadius: 12,
-                          overflow: 'hidden',
-                          border: '1px solid #333'
-                        }}
-                      >
+                    <Col span={results.length === 1 ? 24 : 12} key={index} style={{ height: results.length === 1 ? '100%' : 'calc(50% - 6px)' }}>
+                      <div style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', border: '1px solid #333', height: '100%' }}>
                         <Image
                           src={url}
                           alt={`生成结果 ${index + 1}`}
-                          style={{ width: '100%', height: 'auto', display: 'block' }}
-                          preview={{
-                            mask: (
-                              <div>
-                                <EyeOutlined style={{ fontSize: 24 }} />
-                                <div style={{ marginTop: 8 }}>预览</div>
-                              </div>
-                            )
-                          }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          preview={{ mask: (<div><EyeOutlined style={{ fontSize: 20 }} /><div style={{ marginTop: 4 }}>预览</div></div>) }}
                         />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            display: 'flex',
-                            gap: 8
-                          }}
-                        >
-                          <Button
-                            type="primary"
-                            shape="circle"
-                            icon={<DownloadOutlined />}
-                            onClick={() => handleDownload(url)}
-                            style={{
-                              background: 'rgba(0,0,0,0.7)',
-                              border: 'none'
-                            }}
-                          />
-                        </div>
+                        <Button
+                          type="primary"
+                          shape="circle"
+                          icon={<DownloadOutlined />}
+                          size="small"
+                          onClick={() => handleDownload(url)}
+                          style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.7)', border: 'none' }}
+                        />
+                        <Tag style={{ position: 'absolute', bottom: 8, left: 8, background: 'rgba(0,0,0,0.7)', border: 'none', color: '#fff' }}>
+                          #{index + 1}
+                        </Tag>
                       </div>
                     </Col>
                   ))}

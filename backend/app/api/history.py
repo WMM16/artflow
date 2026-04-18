@@ -7,6 +7,7 @@ from app.api.deps import get_db, get_current_user
 from app.schemas.generation import GenerationResult, HistoryFilter
 from app.models.generation import Generation
 from app.models.user import User
+from app.services.storage_service import minio_service
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -38,6 +39,25 @@ def get_history(
         .offset((page - 1) * page_size) \
         .limit(page_size) \
         .all()
+
+    # 动态生成预签名URL
+    for gen in generations:
+        if gen.result_urls and isinstance(gen.result_urls, list):
+            fresh_urls = []
+            for obj_name in gen.result_urls:
+                if obj_name and isinstance(obj_name, str):
+                    try:
+                        # 如果存储的是object_name，生成新的URL
+                        if not obj_name.startswith('http'):
+                            url = minio_service.get_presigned_url(obj_name, expires=3600 * 24 * 7)
+                            fresh_urls.append(url)
+                        else:
+                            # 兼容旧数据（存储的是完整URL）
+                            fresh_urls.append(obj_name)
+                    except Exception as e:
+                        print(f"Error generating URL for {obj_name}: {e}")
+                        fresh_urls.append(None)
+            gen.result_urls = [u for u in fresh_urls if u]
 
     return generations
 

@@ -8,7 +8,10 @@ import GenerateImage from './pages/GenerateImage'
 import History from './pages/History'
 import Profile from './pages/Profile'
 import Admin from './pages/Admin'
+import AccountManagement from './pages/AccountManagement'
 import Upgrade from './pages/Upgrade'
+import ReversePrompt from './pages/ReversePrompt'
+import TextToText from './pages/TextToText'
 
 function PrivateRoute({ children }) {
   const token = useAuthStore((state) => state.token)
@@ -28,10 +31,13 @@ function App() {
           <Route index element={<Navigate to="/generate/text" replace />} />
           <Route path="generate/text" element={<GenerateText />} />
           <Route path="generate/image" element={<GenerateImage />} />
+          <Route path="generate/text2text" element={<TextToText />} />
           <Route path="history" element={<History />} />
           <Route path="profile" element={<Profile />} />
           <Route path="upgrade" element={<Upgrade />} />
+          <Route path="reverse" element={<ReversePrompt />} />
           <Route path="admin" element={<Admin />} />
+          <Route path="account-management" element={<AccountManagement />} />
           <Route path="*" element={<Navigate to="/generate/text" replace />} />
         </Route>
       </Routes>

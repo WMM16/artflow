@@ -115,8 +115,8 @@ function History() {
   }
 
   return (
-    <div>
-      <Title level={3} style={{ color: '#fff', marginBottom: 24 }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Title level={4} style={{ color: '#fff', marginBottom: 12, marginTop: 0, flexShrink: 0 }}>
         <HistoryOutlined style={{ color: '#7C3AED', marginRight: 8 }} />
         历史记录
       </Title>
@@ -125,9 +125,11 @@ function History() {
         style={{
           background: '#1A1A1A',
           border: '1px solid #333',
-          borderRadius: 12,
-          marginBottom: 24
+          borderRadius: 8,
+          marginBottom: 12,
+          flexShrink: 0
         }}
+        bodyStyle={{ padding: 12 }}
       >
         <Space wrap>
           <FilterOutlined style={{ color: '#7C3AED' }} />
@@ -135,6 +137,7 @@ function History() {
             placeholder="类型筛选"
             allowClear
             style={{ width: 120 }}
+            size="small"
             value={filter.type}
             onChange={(value) => setFilter({ ...filter, type: value })}
             options={[
@@ -146,6 +149,7 @@ function History() {
             placeholder="时间筛选"
             allowClear
             style={{ width: 120 }}
+            size="small"
             value={filter.days}
             onChange={(value) => setFilter({ ...filter, days: value })}
             options={[
@@ -154,142 +158,144 @@ function History() {
               { label: '本月', value: 30 }
             ]}
           />
-          <Button type="primary" onClick={fetchHistory}>
+          <Button type="primary" size="small" onClick={fetchHistory}>
             刷新
           </Button>
         </Space>
       </Card>
 
-      <Spin spinning={loading}>
-        {history.length === 0 ? (
-          <Card
-            style={{
-              background: '#1A1A1A',
-              border: '1px solid #333',
-              borderRadius: 12
-            }}
-          >
-            <Empty
-              description="暂无历史记录"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
-          </Card>
-        ) : (
-          <Masonry
-            breakpointCols={breakpointColumns}
-            className="masonry-grid"
-            columnClassName="masonry-grid-column"
-          >
-            {history.map((item) => (
-              <Card
-                key={item.id}
-                style={{
-                  background: '#1A1A1A',
-                  border: '1px solid #333',
-                  borderRadius: 12,
-                  marginBottom: 16,
-                  overflow: 'hidden'
-                }}
-                bodyStyle={{ padding: 0 }}
-                cover={
-                  <div style={{ position: 'relative', height: 200, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                    {item.result_urls?.[0] ? (
-                      <div style={{ width: '100%', height: '100%' }}>
-                        <Image
-                          src={item.result_urls[0]}
-                          alt={item.prompt}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          preview={{ mask: <EyeOutlined style={{ fontSize: 24 }} /> }}
-                        />
-                      </div>
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Tag color={getStatusColor(item.status)}>
-                          {getStatusLabel(item.status)}
+      <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+        <Spin spinning={loading}>
+          {history.length === 0 ? (
+            <Card
+              style={{
+                background: '#1A1A1A',
+                border: '1px solid #333',
+                borderRadius: 8
+              }}
+            >
+              <Empty
+                description="暂无历史记录"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            </Card>
+          ) : (
+            <Masonry
+              breakpointCols={breakpointColumns}
+              className="masonry-grid"
+              columnClassName="masonry-grid-column"
+            >
+              {history.map((item) => (
+                <Card
+                  key={item.id}
+                  style={{
+                    background: '#1A1A1A',
+                    border: '1px solid #333',
+                    borderRadius: 8,
+                    marginBottom: 12,
+                    overflow: 'hidden'
+                  }}
+                  bodyStyle={{ padding: 0 }}
+                  cover={
+                    <div style={{ position: 'relative', height: 160, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                      {item.result_urls?.[0] ? (
+                        <div style={{ width: '100%', height: '100%' }}>
+                          <Image
+                            src={item.result_urls[0]}
+                            alt={item.prompt}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            preview={{ mask: <EyeOutlined style={{ fontSize: 20 }} /> }}
+                          />
+                        </div>
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Tag color={getStatusColor(item.status)}>
+                            {getStatusLabel(item.status)}
+                          </Tag>
+                        </div>
+                      )}
+                      {item.result_urls && item.result_urls.length > 1 && (
+                        <Tag
+                          color="#7C3AED"
+                          style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            background: 'rgba(0,0,0,0.7)',
+                            border: 'none'
+                          }}
+                        >
+                          +{item.result_urls.length - 1}
                         </Tag>
-                      </div>
-                    )}
-                    {item.result_urls && item.result_urls.length > 1 && (
-                      <Tag
-                        color="#7C3AED"
-                        style={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          background: 'rgba(0,0,0,0.7)',
-                          border: 'none'
-                        }}
-                      >
-                        +{item.result_urls.length - 1}
+                      )}
+                    </div>
+                  }
+                >
+                  <div style={{ padding: 10 }}>
+                    <div style={{ marginBottom: 6 }}>
+                      <Tag icon={getTypeIcon(item.type)} color="#7C3AED" size="small">
+                        {getTypeLabel(item.type)}
                       </Tag>
-                    )}
-                  </div>
-                }
-              >
-                <div style={{ padding: 12 }}>
-                  <div style={{ marginBottom: 8 }}>
-                    <Tag icon={getTypeIcon(item.type)} color="#7C3AED">
-                      {getTypeLabel(item.type)}
-                    </Tag>
-                    <Tag color={getStatusColor(item.status)}>
-                      {getStatusLabel(item.status)}
-                    </Tag>
-                  </div>
-                  <Text
-                    ellipsis={{ rows: 2 }}
-                    style={{
-                      color: 'rgba(255,255,255,0.8)',
-                      display: 'block',
-                      fontSize: 13,
-                      marginBottom: 8
-                    }}
-                  >
-                    {item.prompt}
-                  </Text>
-                  <Text
-                    style={{
-                      color: 'rgba(255,255,255,0.5)',
-                      fontSize: 12,
-                      display: 'block',
-                      marginBottom: 12
-                    }}
-                  >
-                    <CalendarOutlined style={{ marginRight: 4 }} />
-                    {dayjs(item.created_at).format('YYYY-MM-DD HH:mm')}
-                  </Text>
-                  <Space>
-                    <Button
-                      size="small"
-                      icon={<DownloadOutlined />}
-                      onClick={() => item.result_urls?.[0] && handleDownload(item.result_urls[0])}
-                      disabled={!item.result_urls?.[0]}
+                      <Tag color={getStatusColor(item.status)} size="small">
+                        {getStatusLabel(item.status)}
+                      </Tag>
+                    </div>
+                    <Text
+                      ellipsis={{ rows: 2 }}
+                      style={{
+                        color: 'rgba(255,255,255,0.8)',
+                        display: 'block',
+                        fontSize: 12,
+                        marginBottom: 6
+                      }}
                     >
-                      下载
-                    </Button>
-                    <Button
-                      size="small"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => handleDelete(item.id)}
+                      {item.prompt}
+                    </Text>
+                    <Text
+                      style={{
+                        color: 'rgba(255,255,255,0.5)',
+                        fontSize: 11,
+                        display: 'block',
+                        marginBottom: 8
+                      }}
                     >
-                      删除
-                    </Button>
-                  </Space>
-                </div>
-              </Card>
-            ))}
-          </Masonry>
-        )}
-      </Spin>
+                      <CalendarOutlined style={{ marginRight: 4 }} />
+                      {dayjs(item.created_at).format('YYYY-MM-DD HH:mm')}
+                    </Text>
+                    <Space size="small">
+                      <Button
+                        size="small"
+                        icon={<DownloadOutlined />}
+                        onClick={() => item.result_urls?.[0] && handleDownload(item.result_urls[0])}
+                        disabled={!item.result_urls?.[0]}
+                      >
+                        下载
+                      </Button>
+                      <Button
+                        size="small"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        删除
+                      </Button>
+                    </Space>
+                  </div>
+                </Card>
+              ))}
+            </Masonry>
+          )}
+        </Spin>
+      </div>
 
       <style>{`
         .masonry-grid {
           display: flex;
-          margin-left: -16px;
+          margin-left: -12px;
           width: auto;
         }
         .masonry-grid-column {
-          padding-left: 16px;
+          padding-left: 12px;
           background-clip: padding-box;
         }
       `}</style>

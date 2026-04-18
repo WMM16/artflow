@@ -8,6 +8,7 @@ import enum
 class GenerationType(str, enum.Enum):
     TEXT2IMG = "text2img"
     IMG2IMG = "img2img"
+    TEXT2TEXT = "text2text"
 
 
 class GenerationStatus(str, enum.Enum):
@@ -82,3 +83,33 @@ class HistoryFilter(BaseModel):
     days: Optional[int] = None
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
+
+
+# 文生文相关 Schema
+class Text2TextMode(str, enum.Enum):
+    WRITE = "write"           # 文章写作
+    CONTINUE = "continue"     # 续写
+    POLISH = "polish"         # 润色
+    SUMMARY = "summary"       # 摘要
+    TRANSLATE = "translate"   # 翻译
+    CREATIVE = "creative"     # 创意写作
+    CODE = "code"             # 代码生成
+    CHAT = "chat"             # 自由对话
+
+
+class Text2TextRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=5000, description="输入提示")
+    mode: Text2TextMode = Field(Text2TextMode.WRITE, description="生成模式")
+    temperature: float = Field(0.7, ge=0.0, le=1.0, description="创意程度(0-1)")
+    max_tokens: int = Field(2000, ge=100, le=4000, description="最大生成字数")
+
+
+class Text2TextResponse(BaseModel):
+    id: UUID
+    content: str
+    mode: Text2TextMode
+    usage: dict
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

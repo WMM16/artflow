@@ -102,8 +102,19 @@ export const generateApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
 
+  generateText2Text: (data) =>
+    api.post('/generate/text2text', data),
+
+  getText2TextHistory: () =>
+    api.get('/generate/text2text/history'),
+
   getTaskStatus: (taskId) =>
-    api.get(`/generate/status/${taskId}`)
+    api.get(`/generate/status/${taskId}`),
+
+  reversePrompt: (formData) =>
+    api.post('/generate/reverse', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
 }
 
 // History API
@@ -128,6 +139,33 @@ export const historyApi = {
 
   deleteBatch: (ids) =>
     api.delete('/history', { data: ids })
+}
+
+// Upgrade API
+export const upgradeApi = {
+  getPackages: () =>
+    api.get('/upgrade/packages'),
+
+  purchase: (packageId) =>
+    api.post('/upgrade/purchase', { package_id: packageId })
+}
+
+// SubAccount API
+export const subAccountApi = {
+  getList: () =>
+    api.get('/subaccounts'),
+
+  getStats: () =>
+    api.get('/subaccounts/stats/overview'),
+
+  create: (data) =>
+    api.post('/subaccounts', data),
+
+  update: (id, data) =>
+    api.put(`/subaccounts/${id}`, data),
+
+  delete: (id) =>
+    api.delete(`/subaccounts/${id}`)
 }
 
 export default api

@@ -9,6 +9,7 @@ from app.core.database import Base
 class GenerationType(str, enum.Enum):
     TEXT2IMG = "text2img"
     IMG2IMG = "img2img"
+    TEXT2TEXT = "text2text"
 
 
 class GenerationStatus(str, enum.Enum):
@@ -31,7 +32,7 @@ class Generation(Base):
     image_count = Column(Integer, default=1)
     strength = Column(Float, nullable=True)  # For img2img
     status = Column(Enum(GenerationStatus), default=GenerationStatus.PENDING)
-    result_urls = Column(JSON, default=list)
+    result_urls = Column(JSON, default=list)  # 存储MinIO object_names
     seed = Column(Integer, nullable=True)
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

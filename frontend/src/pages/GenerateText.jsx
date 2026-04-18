@@ -132,21 +132,24 @@ function GenerateText() {
   }
 
   return (
-    <div>
-      <Title level={3} style={{ color: '#fff', marginBottom: 24 }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Title level={4} style={{ color: '#fff', marginBottom: 12, marginTop: 0, flexShrink: 0 }}>
         <ThunderboltOutlined style={{ color: '#7C3AED', marginRight: 8 }} />
         文生图
       </Title>
 
-      <Row gutter={24}>
-        <Col span={8}>
+      <Row gutter={16} style={{ flex: 1, minHeight: 0 }}>
+        <Col span={7} style={{ height: '100%' }}>
           <Card
             style={{
               background: '#1A1A1A',
               border: '1px solid #333',
-              borderRadius: 12
+              borderRadius: 8,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
             }}
-            bodyStyle={{ padding: 24 }}
+            bodyStyle={{ padding: 16, flex: 1, overflow: 'auto' }}
           >
             <Form
               form={form}
@@ -156,45 +159,34 @@ function GenerateText() {
                 size: '1024x1024',
                 count: 1
               }}
+              style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             >
               <Form.Item
                 name="prompt"
-                label={
-                  <span style={{ color: '#fff' }}>
-                    提示词
-                    <Tooltip title="描述你想生成的图片内容，越详细越好">
-                      <InfoCircleOutlined style={{ marginLeft: 8, color: '#666' }} />
-                    </Tooltip>
-                  </span>
-                }
+                label={<span style={{ color: '#fff', fontSize: 13 }}>提示词</span>}
                 rules={[{ required: true, message: '请输入提示词' }]}
+                style={{ flex: 1, marginBottom: 12 }}
               >
                 <TextArea
-                  rows={4}
-                  placeholder="例如：一只戴着墨镜的猫咪，赛博朋克风格，霓虹灯光，高清细节..."
+                  placeholder="描述你想生成的图片内容..."
                   style={{
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid #333',
                     color: '#fff',
-                    resize: 'none'
+                    resize: 'none',
+                    height: 'calc(100% - 25px)'
                   }}
                 />
               </Form.Item>
 
               <Form.Item
                 name="negativePrompt"
-                label={
-                  <span style={{ color: '#fff' }}>
-                    负面提示词
-                    <Tooltip title="描述你不希望在图片中出现的元素">
-                      <InfoCircleOutlined style={{ marginLeft: 8, color: '#666' }} />
-                    </Tooltip>
-                  </span>
-                }
+                label={<span style={{ color: '#fff', fontSize: 13 }}>负面提示词</span>}
+                style={{ marginBottom: 12 }}
               >
                 <TextArea
                   rows={2}
-                  placeholder="例如：模糊，低质量，变形的手..."
+                  placeholder="不希望在图片中出现的元素..."
                   style={{
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid #333',
@@ -206,7 +198,8 @@ function GenerateText() {
 
               <Form.Item
                 name="size"
-                label={<span style={{ color: '#fff' }}>图片尺寸</span>}
+                label={<span style={{ color: '#fff', fontSize: 13 }}>图片尺寸</span>}
+                style={{ marginBottom: 12 }}
               >
                 <Select
                   options={SIZE_OPTIONS}
@@ -217,7 +210,8 @@ function GenerateText() {
 
               <Form.Item
                 name="count"
-                label={<span style={{ color: '#fff' }}>生成数量: {form.getFieldValue('count') || 1}</span>}
+                label={<span style={{ color: '#fff', fontSize: 13 }}>生成数量: {form.getFieldValue('count') || 1}</span>}
+                style={{ marginBottom: 16 }}
               >
                 <Slider
                   min={1}
@@ -227,19 +221,17 @@ function GenerateText() {
                 />
               </Form.Item>
 
-              <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+              <Form.Item style={{ marginTop: 'auto', marginBottom: 0 }}>
                 <Button
                   type="primary"
                   htmlType="submit"
-                  size="large"
                   loading={loading}
                   block
                   icon={<ThunderboltOutlined />}
                   style={{
                     background: 'linear-gradient(135deg, #7C3AED, #4F46E5)',
                     border: 'none',
-                    height: 48,
-                    fontSize: 16
+                    height: 40
                   }}
                 >
                   {loading ? `生成中 ${progress}%` : '开始生成'}
@@ -247,32 +239,17 @@ function GenerateText() {
               </Form.Item>
             </Form>
           </Card>
-
-          <Card
-            style={{
-              background: '#1A1A1A',
-              border: '1px solid #333',
-              borderRadius: 12,
-              marginTop: 16
-            }}
-            bodyStyle={{ padding: 16 }}
-          >
-            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
-              <InfoCircleOutlined style={{ marginRight: 8 }} />
-              提示：详细的描述能获得更好的生成效果。可以描述风格、光线、色彩、构图等。
-            </Text>
-          </Card>
         </Col>
 
-        <Col span={16}>
+        <Col span={17} style={{ height: '100%' }}>
           <Card
             style={{
               background: '#1A1A1A',
               border: '1px solid #333',
-              borderRadius: 12,
-              minHeight: 600
+              borderRadius: 8,
+              height: '100%'
             }}
-            bodyStyle={{ padding: 24 }}
+            bodyStyle={{ padding: 16, height: '100%', overflow: 'auto' }}
           >
             {results.length === 0 ? (
               <div
@@ -281,16 +258,16 @@ function GenerateText() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  height: 500,
+                  height: '100%',
                   color: 'rgba(255,255,255,0.3)'
                 }}
               >
-                <PictureOutlined style={{ fontSize: 80, marginBottom: 24 }} />
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16 }}>
-                  {loading ? '正在生成你的创意作品...' : '输入提示词开始创作'}
+                <PictureOutlined style={{ fontSize: 64, marginBottom: 16 }} />
+                <Text style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  {loading ? '正在生成...' : '输入提示词开始创作'}
                 </Text>
                 {loading && (
-                  <div style={{ marginTop: 24, width: 200 }}>
+                  <div style={{ marginTop: 16, width: 200 }}>
                     <div
                       style={{
                         height: 4,
@@ -313,14 +290,13 @@ function GenerateText() {
                 )}
               </div>
             ) : (
-              <div>
-                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: '#fff', fontSize: 16 }}>
-                    生成结果
-                  </Text>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                  <Text style={{ color: '#fff' }}>生成结果</Text>
                   <Space>
                     <Button
                       icon={<ReloadOutlined />}
+                      size="small"
                       onClick={() => form.submit()}
                     >
                       重新生成
@@ -328,56 +304,52 @@ function GenerateText() {
                     <Button
                       icon={<DeleteOutlined />}
                       danger
+                      size="small"
                       onClick={() => setResults([])}
                     >
                       清空
                     </Button>
                   </Space>
                 </div>
-                <Row gutter={[16, 16]}>
+                <Row gutter={[12, 12]} style={{ flex: 1 }}>
                   {results.map((url, index) => (
-                    <Col span={results.length === 1 ? 24 : 12} key={index}>
+                    <Col span={results.length === 1 ? 24 : 12} key={index} style={{ height: results.length === 1 ? '100%' : 'calc(50% - 6px)' }}>
                       <div
                         style={{
                           position: 'relative',
-                          borderRadius: 12,
+                          borderRadius: 8,
                           overflow: 'hidden',
-                          border: '1px solid #333'
+                          border: '1px solid #333',
+                          height: '100%'
                         }}
                       >
                         <Image
                           src={url}
                           alt={`生成结果 ${index + 1}`}
-                          style={{ width: '100%', height: 'auto', display: 'block' }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           preview={{
                             mask: (
                               <div>
-                                <EyeOutlined style={{ fontSize: 24 }} />
-                                <div style={{ marginTop: 8 }}>预览</div>
+                                <EyeOutlined style={{ fontSize: 20 }} />
+                                <div style={{ marginTop: 4 }}>预览</div>
                               </div>
                             )
                           }}
                         />
-                        <div
+                        <Button
+                          type="primary"
+                          shape="circle"
+                          icon={<DownloadOutlined />}
+                          size="small"
+                          onClick={() => handleDownload(url)}
                           style={{
                             position: 'absolute',
                             top: 8,
                             right: 8,
-                            display: 'flex',
-                            gap: 8
+                            background: 'rgba(0,0,0,0.7)',
+                            border: 'none'
                           }}
-                        >
-                          <Button
-                            type="primary"
-                            shape="circle"
-                            icon={<DownloadOutlined />}
-                            onClick={() => handleDownload(url)}
-                            style={{
-                              background: 'rgba(0,0,0,0.7)',
-                              border: 'none'
-                            }}
-                          />
-                        </div>
+                        />
                         <Tag
                           style={{
                             position: 'absolute',

@@ -8,13 +8,14 @@ import io
 from app.api.deps import get_db, get_current_user
 from app.schemas.generation import (
     TextGenerationRequest, ImageGenerationRequest,
-    GenerationResponse, TaskStatus
+    GenerationResponse, TaskStatus,
+    Text2TextRequest, Text2TextResponse, Text2TextMode
 )
 from app.models.generation import Generation, GenerationType, GenerationStatus
 from app.models.user import User
 from app.core.redis import set_task_status, get_task_status
 from app.services.doubao_service import doubao_service
-from app.services.minio_service import minio_service
+from app.services.storage_service import minio_service
 from uuid6 import uuid7
 from uuid import UUID
 
@@ -150,6 +151,95 @@ async def generate_from_image(
     )
 
 
+@router.post("/text2text", response_model=Text2TextResponse)
+async def generate_text_to_text(
+    request: Text2TextRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """文生文 - 使用豆包大模型生成文本"""
+    # 检查配额
+    if current_user.quota_used >= current_user.quota_daily:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Daily quota exceeded"
+        )
+
+    # 创建生成记录
+    generation = Generation(
+        id=uuid7(),
+        user_id=current_user.id,
+        type=GenerationType.TEXT2TEXT,
+        prompt=request.prompt,
+        status=GenerationStatus.PROCESSING
+    )
+    db.add(generation)
+    db.commit()
+
+    try:
+        # 调用豆包API生成文本
+        result = await doubao_service.generate_text(
+            prompt=request.prompt,
+            mode=request.mode.value,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens
+        )
+
+        # 更新完成状态
+        generation.status = GenerationStatus.COMPLETED
+        generation.completed_at = datetime.utcnow()
+        # 存储结果到 result_urls 字段（存储文本内容）
+        generation.result_urls = [result["content"]]
+        db.commit()
+
+        # 更新用户配额
+        current_user.quota_used += 1
+        db.commit()
+
+        return Text2TextResponse(
+            id=generation.id,
+            content=result["content"],
+            mode=request.mode,
+            usage=result.get("usage", {}),
+            created_at=generation.created_at
+        )
+
+    except Exception as e:
+        generation.status = GenerationStatus.FAILED
+        generation.error_message = str(e)
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Text generation failed: {str(e)}"
+        )
+
+
+@router.get("/text2text/history")
+def get_text2text_history(
+    skip: int = 0,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """获取文生文历史记录"""
+    generations = db.query(Generation).filter(
+        Generation.user_id == current_user.id,
+        Generation.type == GenerationType.TEXT2TEXT
+    ).order_by(Generation.created_at.desc()).offset(skip).limit(limit).all()
+
+    return [
+        {
+            "id": g.id,
+            "prompt": g.prompt,
+            "content": g.result_urls[0] if g.result_urls else None,
+            "status": g.status.value if hasattr(g.status, 'value') else g.status,
+            "created_at": g.created_at,
+            "completed_at": g.completed_at
+        }
+        for g in generations
+    ]
+
+
 @router.get("/status/{task_id}")
 def get_generation_status(
     task_id: UUID,
@@ -255,21 +345,36 @@ async def _generate_images_task(
             )
 
         # 下载并上传到MinIO
-        result_urls = []
-        async with httpx.AsyncClient() as client:
+        object_names = []
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             for url in urls:
                 try:
                     response = await client.get(url, timeout=30.0)
                     response.raise_for_status()
-                    object_name = minio_service.upload_image(response.content)
-                    presigned_url = minio_service.get_presigned_url(object_name, expires=86400 * 7)
-                    result_urls.append(presigned_url)
+                    print(f"Downloaded {len(response.content)} bytes from {url[:50]}...")
+                    try:
+                        object_name = minio_service.upload_image(response.content)
+                        object_names.append(object_name)
+                        print(f"Uploaded to MinIO: {object_name}")
+                    except Exception as e:
+                        print(f"MinIO upload error: {e}")
+                        object_names.append(None)
                 except Exception as e:
-                    print(f"Error downloading/uploading image: {e}")
-                    result_urls.append(url)  # 使用原始URL
+                    print(f"Error downloading image: {e}")
+                    object_names.append(None)  # 标记为失败
 
-        # 更新完成状态
-        generation.result_urls = result_urls
+        # 生成预签名URL用于立即返回
+        result_urls = []
+        for obj_name in object_names:
+            if obj_name:
+                try:
+                    url = minio_service.get_presigned_url(obj_name, expires=86400 * 7)
+                    result_urls.append(url)
+                except Exception as e:
+                    print(f"Error generating presigned URL: {e}")
+
+        # 更新完成状态 - 保存object_names而不是URLs
+        generation.result_urls = object_names
         generation.status = GenerationStatus.COMPLETED
         generation.completed_at = datetime.utcnow()
         db.commit()
@@ -301,3 +406,37 @@ async def _generate_images_task(
 
     finally:
         db.close()
+
+
+
+
+async def reverse_prompt(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """图片反推提示词 - 使用豆包视觉模型分析图片"""
+    try:
+        # 验证文件类型
+        if not file.content_type or not file.content_type.startswith("image/"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only image files are allowed"
+            )
+
+        # 读取图片数据
+        image_data = await file.read()
+
+        # 调用豆包视觉模型分析图片
+        result = await doubao_service.analyze_image(image_data)
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Reverse prompt error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to analyze image: {str(e)}"
+        )
+

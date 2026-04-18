@@ -8,22 +8,32 @@ import uuid
 
 class MinioService:
     def __init__(self):
-        self.client = Minio(
-            settings.MINIO_ENDPOINT,
-            access_key=settings.MINIO_ACCESS_KEY,
-            secret_key=settings.MINIO_SECRET_KEY,
-            secure=settings.MINIO_SECURE
-        )
-        self.bucket_name = settings.MINIO_BUCKET_NAME
-        self._ensure_bucket()
+        try:
+            self.client = Minio(
+                settings.MINIO_ENDPOINT,
+                access_key=settings.MINIO_ACCESS_KEY,
+                secret_key=settings.MINIO_SECRET_KEY,
+                secure=False  # 强制不使用 HTTPS
+            )
+            self.bucket_name = settings.MINIO_BUCKET_NAME
+            self._ensure_bucket()
+            print(f"MinIO connected: {settings.MINIO_ENDPOINT}")
+        except Exception as e:
+            print(f"MinIO init error: {e}")
+            raise
 
     def _ensure_bucket(self):
         """确保bucket存在"""
         try:
-            if not self.client.bucket_exists(self.bucket_name):
+            found = self.client.bucket_exists(self.bucket_name)
+            if not found:
                 self.client.make_bucket(self.bucket_name)
-        except S3Error as e:
-            print(f"Error creating bucket: {e}")
+                print(f"Created bucket: {self.bucket_name}")
+            else:
+                print(f"Bucket exists: {self.bucket_name}")
+        except Exception as e:
+            print(f"Error checking/creating bucket: {e}")
+            # 不要抛出异常，让后续操作决定
 
     def upload_image(self, image_data: bytes, content_type: str = "image/png", prefix: str = "generations") -> str:
         """上传图片到MinIO"""

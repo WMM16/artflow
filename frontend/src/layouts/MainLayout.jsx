@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Layout, Menu, Avatar, Dropdown, Badge, Typography, Progress } from 'antd'
+import { Layout, Menu, Avatar, Dropdown, Typography, Progress } from 'antd'
 import { useNavigate, useLocation, Outlet } from 'react-router-dom'
 import {
   PictureOutlined,
@@ -10,8 +10,10 @@ import {
   TeamOutlined,
   StarOutlined,
   AppstoreOutlined,
-  ThunderboltOutlined,
-  CrownOutlined
+  CrownOutlined,
+  EyeOutlined,
+  PartitionOutlined,
+  EditOutlined
 } from '@ant-design/icons'
 import { useAuthStore } from '../stores/auth'
 import { historyApi } from '../lib/api'
@@ -50,7 +52,7 @@ function MainLayout() {
     {
       key: 'generate',
       icon: <AppstoreOutlined />,
-      label: 'AI 生图',
+      label: 'AI 创作',
       children: [
         {
           key: '/generate/text',
@@ -61,8 +63,18 @@ function MainLayout() {
           key: '/generate/image',
           icon: <PictureOutlined />,
           label: '图生图'
+        },
+        {
+          key: '/generate/text2text',
+          icon: <EditOutlined />,
+          label: 'AI 写作'
         }
       ]
+    },
+    {
+      key: '/reverse',
+      icon: <EyeOutlined />,
+      label: '图片反推'
     },
     {
       key: '/history',
@@ -82,8 +94,13 @@ function MainLayout() {
     ...(isAdmin ? [{
       key: '/admin',
       icon: <TeamOutlined />,
-      label: '账号管理'
-    }] : [])
+      label: '系统管理'
+    }] : []),
+    {
+      key: '/account-management',
+      icon: <PartitionOutlined />,
+      label: '账户管理'
+    }
   ]
 
   const userMenuItems = [
@@ -128,32 +145,44 @@ function MainLayout() {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#0F0F0F' }}>
+    <Layout
+      style={{
+        height: '100vh',
+        background: '#0F0F0F',
+        overflow: 'hidden'
+      }}
+    >
       <Sider
         trigger={null}
         collapsible
         collapsed={collapsed}
         theme="dark"
-        width={220}
+        width={200}
         style={{
           background: '#1A1A1A',
-          borderRight: '1px solid #333'
+          borderRight: '1px solid #333',
+          height: '100vh',
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          overflow: 'hidden'
         }}
       >
         <div
           style={{
-            height: 64,
+            height: 56,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderBottom: '1px solid #333'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div
               style={{
-                width: 36,
-                height: 36,
+                width: 32,
+                height: 32,
                 borderRadius: '50%',
                 background: 'linear-gradient(135deg, #7C3AED, #4F46E5)',
                 display: 'flex',
@@ -161,10 +190,10 @@ function MainLayout() {
                 justifyContent: 'center'
               }}
             >
-              <StarOutlined style={{ fontSize: 18, color: '#fff' }} />
+              <StarOutlined style={{ fontSize: 16, color: '#fff' }} />
             </div>
             {!collapsed && (
-              <Text strong style={{ color: '#fff', fontSize: 18 }}>
+              <Text strong style={{ color: '#fff', fontSize: 16 }}>
                 ArtFlow
               </Text>
             )}
@@ -181,7 +210,10 @@ function MainLayout() {
           style={{
             background: '#1A1A1A',
             borderRight: 0,
-            paddingTop: 16
+            paddingTop: 8,
+            height: 'calc(100vh - 140px)',
+            overflowY: 'auto',
+            overflowX: 'hidden'
           }}
         />
 
@@ -192,13 +224,13 @@ function MainLayout() {
               bottom: 0,
               left: 0,
               right: 0,
-              padding: 16,
+              padding: 12,
               borderTop: '1px solid #333',
               background: '#1A1A1A'
             }}
           >
-            <div style={{ marginBottom: 8 }}>
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
+            <div style={{ marginBottom: 4 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
                 今日额度
               </Text>
             </div>
@@ -209,8 +241,8 @@ function MainLayout() {
               trailColor="rgba(255,255,255,0.1)"
               size="small"
             />
-            <div style={{ marginTop: 4 }}>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
+            <div style={{ marginTop: 2 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11 }}>
                 {quota.used} / {quota.daily} 剩余 {quota.remaining}
               </Text>
             </div>
@@ -218,32 +250,42 @@ function MainLayout() {
         )}
       </Sider>
 
-      <Layout>
+      <Layout
+        style={{
+          marginLeft: collapsed ? 80 : 200,
+          height: '100vh',
+          transition: 'margin-left 0.2s',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         <Header
           style={{
             background: '#1A1A1A',
             borderBottom: '1px solid #333',
-            padding: '0 24px',
+            padding: '0 20px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-end'
+            justifyContent: 'flex-end',
+            height: 56,
+            flexShrink: 0
           }}
         >
           <Dropdown
             menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
             placement="bottomRight"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
               <div style={{ textAlign: 'right' }}>
-                <Text strong style={{ color: '#fff', display: 'block' }}>
+                <Text strong style={{ color: '#fff', display: 'block', fontSize: 13 }}>
                   {user?.nickname || user?.email}
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
                   {user?.is_admin ? '管理员' : '普通用户'}
                 </Text>
               </div>
               <Avatar
-                size={40}
+                size={36}
                 src={user?.avatar_url}
                 icon={<UserOutlined />}
                 style={{ background: 'linear-gradient(135deg, #7C3AED, #4F46E5)' }}
@@ -254,9 +296,12 @@ function MainLayout() {
 
         <Content
           style={{
-            padding: 24,
+            padding: 16,
             background: '#0F0F0F',
-            overflow: 'auto'
+            flex: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
           }}
         >
           <Outlet />

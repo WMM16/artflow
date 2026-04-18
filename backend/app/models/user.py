@@ -1,5 +1,6 @@
-from sqlalchemy import Column, String, Boolean, Integer, DateTime, func
+from sqlalchemy import Column, String, Boolean, Integer, DateTime, func, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from uuid6 import uuid7
 from app.core.database import Base
 
@@ -16,7 +17,13 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     quota_daily = Column(Integer, default=10)
     quota_used = Column(Integer, default=0)
+
+    # 父子账号关系
+    parent_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
+    # 关系定义
+    children = relationship("User", backref="parent", remote_side=[id])
     generations = None  # Will be set by relationship in Generation model

@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     DOUBAO_API_KEY: Optional[str] = None
     DOUBAO_TEXT_MODEL: Optional[str] = None
     DOUBAO_IMAGE_MODEL: Optional[str] = None
+    DOUBAO_IMAGE2TEXT_MODEL: Optional[str] = None
 
     class Config:
         env_file = ".env"
